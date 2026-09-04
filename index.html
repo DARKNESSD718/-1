@@ -135,7 +135,7 @@
         .detail-row i { color: #f472b6; font-size: 0.85rem; }
         .detail-row span { color: #fff; font-weight: 700; word-break: break-all; }
 
-        .ban-action-btn {
+        .action-control-btn {
             width: 100%; padding: 10px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; font-size: 0.85rem; margin-bottom: 10px; display: none;
             transition: 0.2s;
         }
@@ -255,7 +255,6 @@
             
             <h2 id="appTitleHeader">أنمي اوفر</h2>
 
-            <!-- أدوات الإدارة وزر التخفي للمطورين والمدراء -->
             <div class="admin-header-tools" id="adminHeaderTools">
                 <button class="admin-tool-btn" id="adminClearChatBtn" title="حذف الشات"><i class="fa-solid fa-trash-can"></i></button>
                 <button class="admin-tool-btn" id="adminMakeAdminBtn" title="ترقية إلى مدير" style="display: none;"><i class="fa-solid fa-crown"></i></button>
@@ -275,6 +274,7 @@
             <button id="sendButton"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
 
+        <!-- قائمة الحساب الشخصي -->
         <div class="profile-modal" id="profileModal">
             <div class="profile-card" id="profileCard">
                 <h3>الحساب</h3>
@@ -290,6 +290,10 @@
                     <div class="info-row">
                         <i class="fa-solid fa-at"></i>
                         <span id="displayUsername">-</span>
+                    </div>
+                    <div class="info-row" style="color: #f472b6; font-family: monospace;">
+                        <i class="fa-solid fa-key"></i>
+                        <span id="displayPasswordBox">كلمة المرور: -</span>
                     </div>
                     <div class="info-row">
                         <i class="fa-solid fa-shield-halved"></i>
@@ -332,6 +336,7 @@
             </div>
         </div>
 
+        <!-- قائمة تفاصيل العضو الآخر (بدون زر حذف الحساب) -->
         <div class="user-detail-modal" id="userDetailModal">
             <div class="user-detail-card" id="userDetailCard">
                 <img id="detailAvatar" class="detail-avatar" src="" alt="صورة العضو">
@@ -351,7 +356,7 @@
                     </div>
                 </div>
 
-                <button class="ban-action-btn" id="banActionBtn">حظر العضو</button>
+                <button class="action-control-btn" id="banActionBtn">حظر العضو</button>
                 <button class="close-modal-btn" id="closeDetailBtn" style="width: 100%; padding: 10px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer;">إغلاق</button>
             </div>
         </div>
@@ -424,6 +429,7 @@
         
         const displayFullName = document.getElementById('displayFullName');
         const displayUsername = document.getElementById('displayUsername');
+        const displayPasswordBox = document.getElementById('displayPasswordBox');
         const displayRoleText = document.getElementById('displayRoleText');
         const sidebarAvatar = document.getElementById('sidebarAvatar');
         const avatarInput = document.getElementById('avatarInput');
@@ -478,7 +484,7 @@
 
             try {
                 const { data: existingUser } = await supabaseClient
-                    .from('profiles')
+                    .from('custom_users')
                     .select('*')
                     .eq('username', username)
                     .maybeSingle();
@@ -492,7 +498,7 @@
 
                 const defaultAvatar = 'https://api.dicebear.com/7.x/bottts/svg?seed=' + username;
                 const { error } = await supabaseClient
-                    .from('profiles')
+                    .from('custom_users')
                     .insert([{ 
                         full_name: fullName, 
                         username: username, 
@@ -510,7 +516,7 @@
                     return;
                 }
 
-                currentUser = { full_name: fullName, username: username, avatar_url: defaultAvatar, role: 'member', is_banned: false };
+                currentUser = { full_name: fullName, username: username, password: password, avatar_url: defaultAvatar, role: 'member', is_banned: false };
                 localStorage.setItem('anime_chat_user', JSON.stringify(currentUser));
                 enterChat();
             } catch (err) {
@@ -534,7 +540,7 @@
 
             try {
                 const { data, error } = await supabaseClient
-                    .from('profiles')
+                    .from('custom_users')
                     .select('*')
                     .eq('username', username)
                     .eq('password', password)
@@ -550,6 +556,7 @@
                 currentUser = { 
                     full_name: data.full_name, 
                     username: data.username, 
+                    password: data.password,
                     role: data.role || 'member',
                     is_banned: data.is_banned || false,
                     avatar_url: data.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + data.username 
@@ -575,7 +582,7 @@
         async function updateHeartbeat() {
             if (!currentUser) return;
             const { data } = await supabaseClient
-                .from('profiles')
+                .from('custom_users')
                 .select('is_banned, role')
                 .eq('username', currentUser.username)
                 .maybeSingle();
@@ -585,10 +592,15 @@
                 currentUser.role = data.role || 'member';
                 localStorage.setItem('anime_chat_user', JSON.stringify(currentUser));
                 checkAdminUI();
+            } else {
+                alert('تم حذف حسابك من قبل الإدارة!');
+                localStorage.removeItem('anime_chat_user');
+                location.reload();
+                return;
             }
 
             await supabaseClient
-                .from('profiles')
+                .from('custom_users')
                 .update({ last_seen: new Date().toISOString() })
                 .eq('username', currentUser.username);
         }
@@ -650,7 +662,7 @@
 
             const cleanUsername = targetUser.trim().replace('@', '');
             const { data: userRecord, error: findError } = await supabaseClient
-                .from('profiles')
+                .from('custom_users')
                 .select('username')
                 .eq('username', cleanUsername)
                 .maybeSingle();
@@ -661,7 +673,7 @@
             }
 
             const { error: updateError } = await supabaseClient
-                .from('profiles')
+                .from('custom_users')
                 .update({ role: 'admin' })
                 .eq('username', cleanUsername);
 
@@ -680,7 +692,7 @@
 
             const cleanUsername = targetUser.trim().replace('@', '');
             const { data: userRecord, error: findError } = await supabaseClient
-                .from('profiles')
+                .from('custom_users')
                 .select('username')
                 .eq('username', cleanUsername)
                 .maybeSingle();
@@ -691,7 +703,7 @@
             }
 
             const { error: updateError } = await supabaseClient
-                .from('profiles')
+                .from('custom_users')
                 .update({ role: 'supervisor' })
                 .eq('username', cleanUsername);
 
@@ -725,13 +737,14 @@
 
         openProfileBtn.addEventListener('click', async () => {
             const { data } = await supabaseClient
-                .from('profiles')
+                .from('custom_users')
                 .select('*')
                 .eq('username', currentUser.username)
                 .maybeSingle();
 
             if(data) {
                 currentUser.full_name = data.full_name;
+                currentUser.password = data.password;
                 currentUser.role = data.role || 'member';
                 currentUser.is_banned = data.is_banned || false;
                 currentUser.avatar_url = data.avatar_url || currentUser.avatar_url;
@@ -740,6 +753,7 @@
 
             displayFullName.textContent = currentUser.full_name;
             displayUsername.textContent = '@' + currentUser.username;
+            displayPasswordBox.textContent = 'كلمة المرور: ' + (currentUser.password || '-');
             const effectiveRole = (currentUser.username === userProfilesCache[currentUser.full_name]?.realUsername && isStealthMode) ? 'member' : currentUser.role;
             displayRoleText.textContent = 'الرتبه : ' + getRoleLabel(effectiveRole);
             sidebarAvatar.src = currentUser.avatar_url;
@@ -779,7 +793,7 @@
         async function loadMembersList() {
             if (membersModal.style.display !== 'flex') return;
 
-            const { data: profilesData } = await supabaseClient.from('profiles').select('*');
+            const { data: profilesData } = await supabaseClient.from('custom_users').select('*');
             membersListContainer.innerHTML = '';
             
             if (profilesData) {
@@ -838,10 +852,10 @@
                                 banActionBtn.style.display = 'block';
                                 if (p.is_banned) {
                                     banActionBtn.textContent = 'فك الحظر';
-                                    banActionBtn.className = 'ban-action-btn btn-ban-red';
+                                    banActionBtn.className = 'action-control-btn btn-ban-red';
                                 } else {
                                     banActionBtn.textContent = 'حظر العضو';
-                                    banActionBtn.className = 'ban-action-btn btn-ban-green';
+                                    banActionBtn.className = 'action-control-btn btn-ban-green';
                                 }
                             }
                         } else {
@@ -862,7 +876,7 @@
             if (!selectedMemberUsername) return;
 
             const { data: targetUser } = await supabaseClient
-                .from('profiles')
+                .from('custom_users')
                 .select('is_banned, role')
                 .eq('username', selectedMemberUsername)
                 .maybeSingle();
@@ -881,7 +895,7 @@
             const newBanState = !targetUser.is_banned;
 
             const { error } = await supabaseClient
-                .from('profiles')
+                .from('custom_users')
                 .update({ is_banned: newBanState })
                 .eq('username', selectedMemberUsername);
 
@@ -892,10 +906,10 @@
 
             if (newBanState) {
                 banActionBtn.textContent = 'فك الحظر';
-                banActionBtn.className = 'ban-action-btn btn-ban-red';
+                banActionBtn.className = 'action-control-btn btn-ban-red';
             } else {
                 banActionBtn.textContent = 'حظر العضو';
-                banActionBtn.className = 'ban-action-btn btn-ban-green';
+                banActionBtn.className = 'action-control-btn btn-ban-green';
             }
 
             alert(newBanState ? 'تم حظر المستخدم بنجاح' : 'تم فك الحظر عن المستخدم بنجاح');
@@ -913,7 +927,7 @@
                 const base64Image = uploadEvent.target.result;
 
                 const { error } = await supabaseClient
-                    .from('profiles')
+                    .from('custom_users')
                     .update({ avatar_url: base64Image })
                     .eq('username', currentUser.username);
 
@@ -954,7 +968,7 @@
             const oldName = currentUser.full_name;
 
             const { error: profileError } = await supabaseClient
-                .from('profiles')
+                .from('custom_users')
                 .update({ full_name: newName })
                 .eq('username', currentUser.username);
 
@@ -991,7 +1005,7 @@
         }
 
         async function loadProfilesAndMessages() {
-            const { data: profilesData } = await supabaseClient.from('profiles').select('*');
+            const { data: profilesData } = await supabaseClient.from('custom_users').select('*');
             if (profilesData) {
                 userProfilesCache = {};
                 profilesData.forEach(p => {
@@ -1076,15 +1090,21 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // دالة الإرسال الآمنة بعد إزالة الرموز السرية نهائياً
         async function sendMessage() {
             const { data: checkUser } = await supabaseClient
-                .from('profiles')
+                .from('custom_users')
                 .select('is_banned')
                 .eq('username', currentUser.username)
                 .maybeSingle();
 
-            if (checkUser && checkUser.is_banned) {
+            if (!checkUser) {
+                alert('تم حذف حسابك!');
+                localStorage.removeItem('anime_chat_user');
+                location.reload();
+                return;
+            }
+
+            if (checkUser.is_banned) {
                 currentUser.is_banned = true;
                 localStorage.setItem('anime_chat_user', JSON.stringify(currentUser));
                 alertModal.style.display = 'flex';
