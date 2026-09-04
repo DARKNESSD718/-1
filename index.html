@@ -2,145 +2,269 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>دردشة الأصدقاء الفورية</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>أنمي اوفر - Anime Over</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Cairo', sans-serif;
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+        html, body {
+            width: 100%; height: 100%; overflow: hidden;
+            background: linear-gradient(135deg, #0d061f 0%, #1a0b2e 50%, #0b1120 100%);
+            color: #f8fafc; display: flex; justify-content: center; align-items: center;
         }
-        body {
-            background-color: #0f172a;
-            color: #f8fafc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
+        
+        .auth-container {
+            width: 92%; max-width: 380px; padding: 25px 20px;
+            background: rgba(22, 14, 38, 0.95); border-radius: 20px;
+            border: 1px solid rgba(236, 72, 153, 0.3); text-align: center;
+            box-shadow: 0 15px 35px rgba(236, 72, 153, 0.2);
+            position: absolute; z-index: 10; display: flex; flex-direction: column;
         }
+        .auth-container h1 { font-size: 1.8rem; font-weight: 900; color: #f472b6; margin-bottom: 5px; }
+        .auth-container p { font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px; }
+        .auth-container input {
+            width: 100%; background-color: #1a0b2e; border: 1px solid rgba(139, 92, 246, 0.4);
+            border-radius: 12px; padding: 12px; color: white; font-size: 0.95rem; outline: none; margin-bottom: 12px; text-align: right;
+        }
+        .auth-btn {
+            width: 100%; background: linear-gradient(135deg, #ec4899, #7c3aed); color: white;
+            border: none; border-radius: 12px; padding: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 5px;
+        }
+        .switch-text { margin-top: 15px; font-size: 0.85rem; color: #94a3b8; }
+        .switch-text span { color: #f472b6; cursor: pointer; font-weight: 700; text-decoration: underline; }
+
         .chat-container {
-            width: 100%;
-            max-width: 450px;
-            height: 100%;
-            background-color: #1e293b;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            width: 100%; height: 100%; max-width: 100%; max-height: 100%;
+            background: rgba(22, 14, 38, 0.95); display: none; flex-direction: column; position: relative; overflow: hidden;
         }
         @media (min-width: 480px) {
-            .chat-container {
-                height: 85vh;
-                border-radius: 16px;
-                border: 1px solid #334155;
-            }
+            .chat-container { max-width: 430px; height: 94vh; border-radius: 20px; border: 1px solid rgba(236, 72, 153, 0.3); }
         }
+
         .chat-header {
-            padding: 16px 20px;
-            background-color: #0f172a;
-            border-bottom: 1px solid #334155;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border-top-left-radius: inherit;
-            border-top-right-radius: inherit;
+            width: 100%; padding: 10px 14px; background: linear-gradient(90deg, #1f113a, #2e1065);
+            border-bottom: 2px solid rgba(236, 72, 153, 0.3); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+            min-height: 56px;
         }
-        .avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #6366f1, #a855f7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-            color: white;
-        }
-        .chat-info h2 { font-size: 1.1rem; font-weight: 700; }
-        .chat-info p { font-size: 0.8rem; color: #22c55e; display: flex; align-items: center; gap: 5px; }
-        .chat-info p::before { content: ''; width: 8px; height: 8px; background-color: #22c55e; border-radius: 50%; display: inline-block; }
+        .chat-header h2 { font-size: 1.15rem; color: #f472b6; flex: 1; text-align: center; }
         
-        .chat-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            scroll-behavior: smooth;
+        .admin-header-tools {
+            display: none; align-items: center; justify-content: center; gap: 6px; flex: 1;
         }
-        .message {
-            max-width: 75%;
-            padding: 10px 14px;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            position: relative;
-            word-wrap: break-word;
-            animation: fadeIn 0.3s ease;
+        .admin-tool-btn {
+            background: rgba(139, 92, 246, 0.25); border: 1px solid rgba(139, 92, 246, 0.5);
+            color: #fff; padding: 6px 10px; border-radius: 8px; font-size: 0.9rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: 0.2s;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .message.received { background-color: #334155; color: #f8fafc; align-self: flex-start; border-bottom-left-radius: 2px; }
-        .message.sent { background-color: #6366f1; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .message .sender-name { font-size: 0.75rem; font-weight: bold; margin-bottom: 3px; color: #cbd5e1; display: block; }
-        .message .time { font-size: 0.65rem; color: rgba(255, 255, 255, 0.7); float: left; margin-top: 5px; margin-right: 8px; }
-        
-        .chat-input-area {
-            padding: 15px 20px;
-            background-color: #0f172a;
-            border-top: 1px solid #334155;
-            display: flex;
-            gap: 10px;
-            border-bottom-left-radius: inherit;
-            border-bottom-right-radius: inherit;
-        }
-        .chat-input-area input {
-            flex: 1;
-            background-color: #1e293b;
-            border: 1px solid #334155;
+        .admin-tool-btn:hover { background: rgba(236, 72, 153, 0.3); border-color: #ec4899; }
+
+        .header-btn {
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid rgba(139, 92, 246, 0.4);
+            color: #c084fc;
+            padding: 6px 10px;
             border-radius: 8px;
-            padding: 12px 15px;
-            color: white;
-            font-size: 0.95rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .chat-input-area input:focus { border-color: #6366f1; }
-        .chat-input-area button {
-            background-color: #6366f1;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            width: 45px;
-            height: 45px;
+            font-size: 0.85rem;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.2s;
         }
-        .chat-input-area button:hover { background-color: #4f46e5; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background-color: #334155; border-radius: 3px; }
+        .members-btn { background: rgba(236, 72, 153, 0.2); border: 1px solid #ec4899; color: #f472b6; }
+        .logout-btn { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; }
+
+        .profile-modal, .members-modal, .user-detail-modal, .alert-modal {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(3px);
+            display: none; justify-content: flex-start; z-index: 100;
+        }
+        .members-modal, .user-detail-modal, .alert-modal { justify-content: center; align-items: center; }
+        
+        .profile-card {
+            width: 82%; max-width: 290px; height: 100%; background: #120922;
+            border-right: 1px solid rgba(236, 72, 153, 0.3);
+            padding: 20px 16px; display: flex; flex-direction: column; overflow-y: auto;
+            box-shadow: 5px 0 25px rgba(0,0,0,0.6);
+        }
+        .profile-card h3 { color: #f472b6; font-size: 1.2rem; margin-bottom: 12px; text-align: center; }
+        
+        .members-card {
+            width: 88%; max-width: 320px; max-height: 75vh; background: #120922;
+            border: 1px solid rgba(236, 72, 153, 0.4); border-radius: 16px;
+            padding: 16px; display: flex; flex-direction: column; overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+        }
+        .members-card h3 { color: #f472b6; font-size: 1.1rem; margin-bottom: 12px; text-align: center; }
+        .members-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; margin-bottom: 12px; flex: 1; }
+        
+        .member-item {
+            display: flex; align-items: center; justify-content: space-between; background: #1a0b2e;
+            padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(139, 92, 246, 0.2);
+            cursor: pointer; transition: 0.2s;
+        }
+        .member-item:hover { border-color: #ec4899; background: #22103a; }
+        
+        .member-info-left { display: flex; align-items: center; gap: 10px; }
+        .member-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid #ec4899; }
+        .member-text-box { display: flex; flex-direction: column; }
+        .member-name { font-size: 0.85rem; color: #fff; font-weight: 700; }
+        .member-username { font-size: 0.7rem; color: #94a3b8; }
+
+        .member-right-box { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .status-badge { font-size: 0.68rem; font-weight: 700; padding: 2px 6px; border-radius: 6px; }
+        .status-online { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.4); }
+        .status-offline { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .status-banned { background: rgba(239, 68, 68, 0.3); color: #ff4d4d; border: 1px solid #ff4d4d; }
+
+        .user-detail-card {
+            width: 85%; max-width: 290px; background: #120922;
+            border: 1px solid rgba(236, 72, 153, 0.5); border-radius: 20px;
+            padding: 20px; display: flex; flex-direction: column; align-items: center; text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+        }
+        .detail-avatar {
+            width: 85px; height: 85px; border-radius: 50%; object-fit: cover;
+            border: 3px solid #ec4899; margin-bottom: 12px; background: #1a0b2e;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
+        }
+        
+        .detail-info-box {
+            width: 100%; background: #1a0b2e; border-radius: 12px; padding: 12px; margin-bottom: 15px;
+            border: 1px solid rgba(139, 92, 246, 0.3); display: flex; flex-direction: column; gap: 8px; text-align: center;
+        }
+        .detail-row { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.88rem; color: #cbd5e1; }
+        .detail-row i { color: #f472b6; font-size: 0.85rem; }
+        .detail-row span { color: #fff; font-weight: 700; word-break: break-all; }
+
+        .ban-action-btn {
+            width: 100%; padding: 10px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; font-size: 0.85rem; margin-bottom: 10px; display: none;
+            transition: 0.2s;
+        }
+        .btn-ban-green { background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; color: #4ade80; }
+        .btn-ban-red { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #f87171; }
+
+        .alert-card {
+            width: 82%; max-width: 290px; background: #120922;
+            border: 1px solid #ef4444; border-radius: 20px;
+            padding: 22px; display: flex; flex-direction: column; align-items: center; text-align: center;
+            box-shadow: 0 15px 35px rgba(239, 68, 68, 0.3);
+        }
+        .alert-card i { font-size: 2.5rem; color: #ef4444; margin-bottom: 12px; }
+        .alert-card h4 { color: #fff; font-size: 1.1rem; margin-bottom: 8px; }
+        .alert-card p { color: #cbd5e1; font-size: 0.88rem; margin-bottom: 18px; line-height: 1.4; }
+        .alert-card button {
+            width: 100%; background: #ef4444; color: white; border: none; border-radius: 10px; padding: 10px; font-weight: 700; cursor: pointer;
+        }
+
+        .profile-avatar-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 12px; }
+        .profile-avatar {
+            width: 75px; height: 75px; border-radius: 50%; object-fit: cover;
+            border: 2px solid #ec4899; background: #1a0b2e;
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3); margin-bottom: 8px;
+        }
+
+        .user-info-box {
+            background: #1a0b2e; border-radius: 12px; padding: 10px 12px; margin-bottom: 12px;
+            border: 1px solid rgba(139, 92, 246, 0.2); display: flex; flex-direction: column; gap: 8px; text-align: center;
+        }
+        .info-row { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.85rem; color: #cbd5e1; }
+        .info-row i { color: #f472b6; font-size: 0.85rem; }
+        .info-row span { color: #fff; font-weight: 700; word-break: break-all; }
+
+        .edit-name-section {
+            background: #1a0b2e; border-radius: 12px; padding: 12px; margin-bottom: 12px;
+            border: 1px solid rgba(236, 72, 153, 0.3); display: none; flex-direction: column; gap: 8px;
+        }
+        .edit-name-section input {
+            width: 100%; background: #120922; border: 1px solid rgba(139, 92, 246, 0.4);
+            border-radius: 8px; padding: 8px 10px; color: white; font-size: 0.88rem; outline: none; text-align: right;
+        }
+        .edit-actions { display: flex; gap: 6px; }
+        .edit-actions button { flex: 1; padding: 6px; border-radius: 8px; border: none; font-weight: 700; font-size: 0.8rem; cursor: pointer; }
+        .save-name-btn { background: #ec4899; color: white; }
+        .cancel-name-btn { background: rgba(255,255,255,0.1); color: #cbd5e1; }
+
+        .profile-actions { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+        .profile-actions button { width: 100%; padding: 10px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
+        .action-btn { background: rgba(139, 92, 246, 0.2); border: 1px solid rgba(139, 92, 246, 0.4); color: #c084fc; }
+        .close-modal-btn { background: rgba(255,255,255,0.08); color: #cbd5e1; }
+
+        .chat-messages { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: rgba(15, 10, 25, 0.8); }
+        
+        .message-row { display: flex; flex-direction: column; max-width: 82%; }
+        .message-row.received { align-self: flex-start; }
+        .message-row.sent { align-self: flex-end; }
+
+        .unified-bubble {
+            padding: 10px 14px; border-radius: 16px; font-size: 0.92rem;
+            word-break: break-word; overflow-wrap: break-word; display: flex;
+            flex-direction: column; gap: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); position: relative;
+        }
+        .message-row.received .unified-bubble {
+            background: #23163d; color: #f8fafc; border: 1px solid rgba(139, 92, 246, 0.3); border-top-right-radius: 4px;
+        }
+        .message-row.sent .unified-bubble {
+            background: linear-gradient(135deg, #db2777, #7c3aed); color: white; border-top-left-radius: 4px;
+        }
+
+        .bubble-header-me, .bubble-header-other { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 6px; }
+        .bubble-header-me { justify-content: flex-end; }
+        .bubble-header-other { justify-content: flex-start; }
+
+        .msg-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1.5px solid #ec4899; flex-shrink: 0; background: #1a0b2e; }
+        .sender-name { font-size: 0.8rem; font-weight: 900; letter-spacing: 0.3px; }
+        
+        .role-member { color: #ff79c6; text-shadow: 0 0 2px rgba(0,0,0,0.8); }
+        .role-supervisor { color: #ffeb3b !important; text-shadow: 0 0 10px rgba(255, 235, 59, 0.9), 0 0 2px #000; font-weight: 900; }
+        .role-admin { color: #ff3d00 !important; text-shadow: 0 0 12px rgba(255, 61, 0, 0.95), 0 0 2px #000; font-weight: 900; }
+        .role-developer { color: #00ffff !important; text-shadow: 0 0 12px rgba(0, 255, 255, 0.9), 0 0 4px #ff00ff; font-weight: 900; }
+
+        .message-text { word-break: break-word; overflow-wrap: break-word; line-height: 1.5; display: block; }
+        .time { font-size: 0.6rem; color: rgba(255, 255, 255, 0.6); align-self: flex-end; margin-top: 2px; }
+        
+        .chat-input-area { padding: 10px 12px; background: #120922; border-top: 1px solid rgba(236, 72, 153, 0.2); display: flex; gap: 8px; flex-shrink: 0; }
+        .chat-input-area input { flex: 1; background-color: #1a0b2e; border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 12px; padding: 10px 12px; color: white; outline: none; font-size: 0.95rem; }
+        .chat-input-area button { background: linear-gradient(135deg, #ec4899, #7c3aed); color: white; border: none; border-radius: 12px; width: 42px; height: 42px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     </style>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-    <div class="chat-container">
+    <div class="auth-container" id="registerBox">
+        <h1>أنمي اوفر</h1>
+        <p>أنشئ حسابك وانضم للدردشة فوراً</p>
+        <input type="text" id="regFullName" placeholder="الاسم الكامل (مثل: يوسف)" autocomplete="off">
+        <input type="text" id="regUser" placeholder="أنشئ اسم مستخدم (مثل: Ali_1@)" autocomplete="off">
+        <input type="password" id="regPass" placeholder="كلمة المرور (8 أرقام أو أكثر)" autocomplete="off">
+        <button class="auth-btn" id="registerBtn">إنشاء حساب ودخول</button>
+        <div class="switch-text">لديك حساب بالفعل؟ <span id="toLogin">تسجيل الدخول</span></div>
+    </div>
+
+    <div class="auth-container" id="loginBox" style="display: none;">
+        <h1>أنمي اوفر</h1>
+        <p>تسجيل الدخول إلى حسابك الموجود</p>
+        <input type="text" id="loginUser" placeholder="اسم المستخدم الخاص بك" autocomplete="off">
+        <input type="password" id="loginPass" placeholder="كلمة المرور" autocomplete="off">
+        <button class="auth-btn" id="loginBtn">دخول</button>
+        <div class="switch-text">ليس لديك حساب؟ <span id="toRegister">إنشاء حساب جديد</span></div>
+    </div>
+
+    <div class="chat-container" id="chatContainer">
         <div class="chat-header">
-            <div class="avatar"><i class="fa-solid fa-user"></i></div>
-            <div class="chat-info">
-                <h2>دردشة الأصدقاء</h2>
-                <p>متصل الآن</p>
+            <button class="header-btn" id="openProfileBtn"><i class="fa-solid fa-bars"></i></button>
+            
+            <h2 id="appTitleHeader">أنمي اوفر</h2>
+
+            <!-- أدوات الإدارة وزر التخفي -->
+            <div class="admin-header-tools" id="adminHeaderTools">
+                <button class="admin-tool-btn" id="adminClearChatBtn" title="حذف الشات"><i class="fa-solid fa-trash-can"></i></button>
+                <button class="admin-tool-btn" id="adminMakeAdminBtn" title="ترقية إلى مدير" style="display: none;"><i class="fa-solid fa-crown"></i></button>
+                <button class="admin-tool-btn" id="adminMakeSupervisorBtn" title="ترقية إلى مشرف" style="display: none;"><i class="fa-solid fa-star"></i></button>
+                <button class="admin-tool-btn" id="stealthToggleBtn" title="إخفاء / إظهار رتبة المطور" style="color: #cbd5e1; border-color: rgba(255,255,255,0.3); display: none;"><i class="fa-solid fa-user-secret"></i></button>
+            </div>
+
+            <div style="display: flex; gap: 6px; align-items: center;">
+                <button class="header-btn members-btn" id="openMembersBtn"><i class="fa-solid fa-users"></i></button>
             </div>
         </div>
 
@@ -150,98 +274,891 @@
             <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا..." autocomplete="off">
             <button id="sendButton"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
+
+        <div class="profile-modal" id="profileModal">
+            <div class="profile-card" id="profileCard">
+                <h3>الحساب</h3>
+                <div class="profile-avatar-container">
+                    <img id="sidebarAvatar" class="profile-avatar" src="https://via.placeholder.com/150" alt="صورة الحساب">
+                </div>
+
+                <div class="user-info-box" id="userInfoBox">
+                    <div class="info-row">
+                        <i class="fa-solid fa-user"></i>
+                        <span id="displayFullName">-</span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fa-solid fa-at"></i>
+                        <span id="displayUsername">-</span>
+                    </div>
+                    <div class="info-row">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span id="displayRoleText">الرتبه : عضو عادي</span>
+                    </div>
+                </div>
+
+                <div class="profile-actions" style="margin-top: 0; margin-bottom: 8px; gap: 8px; display: flex; flex-direction: column;">
+                    <input type="file" id="avatarInput" accept="image/*" style="display: none;">
+                    <button class="action-btn" id="pickAvatarBtn" style="background: rgba(236,72,153,0.2); border-color: #ec4899; color: #f472b6;">
+                        <i class="fa-solid fa-image"></i> اختر صورة من المعرض
+                    </button>
+                    <button class="action-btn" id="toggleEditBtn">
+                        <i class="fa-solid fa-pen-to-square"></i> تغيير الاسم
+                    </button>
+                    <button class="header-btn logout-btn" id="sidebarLogoutBtn" style="width: 100%; padding: 10px; border-radius: 10px; font-size: 0.85rem; font-weight: 700; text-align: center; justify-content: center; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج
+                    </button>
+                </div>
+
+                <div class="edit-name-section" id="editNameSection">
+                    <input type="text" id="editFullNameInput" placeholder="أدخل الاسم الجديد..." autocomplete="off">
+                    <div class="edit-actions">
+                        <button class="save-name-btn" id="saveProfileBtn">حفظ</button>
+                        <button class="cancel-name-btn" id="cancelNameBtn">رجوع</button>
+                    </div>
+                </div>
+
+                <div class="profile-actions" style="margin-top: auto;">
+                    <button class="close-modal-btn" id="closeModalBtn">إغلاق القائمة</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="members-modal" id="membersModal">
+            <div class="members-card" id="membersCard">
+                <h3>أعضاء التطبيق</h3>
+                <div class="members-list" id="membersListContainer"></div>
+                <button class="close-modal-btn" id="closeMembersBtn" style="padding: 10px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer;">إغلاق</button>
+            </div>
+        </div>
+
+        <div class="user-detail-modal" id="userDetailModal">
+            <div class="user-detail-card" id="userDetailCard">
+                <img id="detailAvatar" class="detail-avatar" src="" alt="صورة العضو">
+                
+                <div class="detail-info-box">
+                    <div class="detail-row">
+                        <i class="fa-solid fa-user"></i>
+                        <span id="detailFullName">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <i class="fa-solid fa-at"></i>
+                        <span id="detailUsername">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span id="detailRoleText">الرتبه : عضو عادي</span>
+                    </div>
+                </div>
+
+                <button class="ban-action-btn" id="banActionBtn">حظر العضو</button>
+                <button class="close-modal-btn" id="closeDetailBtn" style="width: 100%; padding: 10px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer;">إغلاق</button>
+            </div>
+        </div>
+
+        <div class="alert-modal" id="alertModal">
+            <div class="alert-card">
+                <i class="fa-solid fa-ban"></i>
+                <h4>تنبيه هام</h4>
+                <p>تم حضرك من الدردشة</p>
+                <button id="closeAlertBtn">حسناً</button>
+            </div>
+        </div>
     </div>
 
     <script>
-        // إعدادات الاتصال بـ Supabase الخاصة بك
         const SUPABASE_URL = 'https://ialhdnjddiepfsqhntsd.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_-pIKHGpAI4RSVpPoLuNpDg_H02e6bgd';
-
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        const registerBox = document.getElementById('registerBox');
+        const loginBox = document.getElementById('loginBox');
+        const chatContainer = document.getElementById('chatContainer');
+        
+        const regFullName = document.getElementById('regFullName');
+        const regUser = document.getElementById('regUser');
+        const regPass = document.getElementById('regPass');
+        const registerBtn = document.getElementById('registerBtn');
+
+        const loginUser = document.getElementById('loginUser');
+        const loginPass = document.getElementById('loginPass');
+        const loginBtn = document.getElementById('loginBtn');
+
+        const toLogin = document.getElementById('toLogin');
+        const toRegister = document.getElementById('toRegister');
+        
         const messagesContainer = document.getElementById('chatMessages');
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
+        const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
 
-        // سؤال المستخدم عن اسمه عند فتح الدردشة
-        const myName = prompt("أدخل اسمك لتبدأ الدردشة:") || "زائر";
+        const appTitleHeader = document.getElementById('appTitleHeader');
+        const adminHeaderTools = document.getElementById('adminHeaderTools');
+        const adminClearChatBtn = document.getElementById('adminClearChatBtn');
+        const adminMakeAdminBtn = document.getElementById('adminMakeAdminBtn');
+        const adminMakeSupervisorBtn = document.getElementById('adminMakeSupervisorBtn');
+        const stealthToggleBtn = document.getElementById('stealthToggleBtn');
 
-        function appendMessage(sender, text, createdAt) {
-            const isMe = (sender === myName);
+        const openProfileBtn = document.getElementById('openProfileBtn');
+        const profileModal = document.getElementById('profileModal');
+        const profileCard = document.getElementById('profileCard');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
+        const openMembersBtn = document.getElementById('openMembersBtn');
+        const membersModal = document.getElementById('membersModal');
+        const membersCard = document.getElementById('membersCard');
+        const closeMembersBtn = document.getElementById('closeMembersBtn');
+        const membersListContainer = document.getElementById('membersListContainer');
+
+        const userDetailModal = document.getElementById('userDetailModal');
+        const userDetailCard = document.getElementById('userDetailCard');
+        const detailAvatar = document.getElementById('detailAvatar');
+        const detailFullName = document.getElementById('detailFullName');
+        const detailUsername = document.getElementById('detailUsername');
+        const detailRoleText = document.getElementById('detailRoleText');
+        const banActionBtn = document.getElementById('banActionBtn');
+        const closeDetailBtn = document.getElementById('closeDetailBtn');
+
+        const alertModal = document.getElementById('alertModal');
+        const closeAlertBtn = document.getElementById('closeAlertBtn');
+        
+        const displayFullName = document.getElementById('displayFullName');
+        const displayUsername = document.getElementById('displayUsername');
+        const displayRoleText = document.getElementById('displayRoleText');
+        const sidebarAvatar = document.getElementById('sidebarAvatar');
+        const avatarInput = document.getElementById('avatarInput');
+        const pickAvatarBtn = document.getElementById('pickAvatarBtn');
+        
+        const userInfoBox = document.getElementById('userInfoBox');
+        const editNameSection = document.getElementById('editNameSection');
+        const editFullNameInput = document.getElementById('editFullNameInput');
+        const toggleEditBtn = document.getElementById('toggleEditBtn');
+        const saveProfileBtn = document.getElementById('saveProfileBtn');
+        const cancelNameBtn = document.getElementById('cancelNameBtn');
+
+        let currentUser = JSON.parse(localStorage.getItem('anime_chat_user')) || null;
+        let isStealthMode = localStorage.getItem('anime_stealth_mode') === 'true';
+        let userProfilesCache = {}; 
+        let selectedMemberUsername = null;
+        let pollInterval = null;
+        let heartbeatInterval = null;
+        let membersPollInterval = null;
+
+        if (currentUser) {
+            enterChat();
+        }
+
+        toLogin.addEventListener('click', () => {
+            registerBox.style.display = 'none';
+            loginBox.style.display = 'flex';
+        });
+        
+        toRegister.addEventListener('click', () => {
+            loginBox.style.display = 'none';
+            registerBox.style.display = 'flex';
+        });
+
+        registerBtn.onclick = async () => {
+            const fullName = regFullName.value.trim();
+            const username = regUser.value.trim();
+            const password = regPass.value.trim();
+
+            if (!fullName || !username || !password) {
+                alert('الرجاء ملء جميع الحقول!');
+                return;
+            }
+
+            if (password.length < 8) {
+                alert('كلمة المرور يجب أن تكون 8 أرقام أو أكثر!');
+                return;
+            }
+
+            registerBtn.disabled = true;
+            registerBtn.textContent = 'جاري الإنشاء...';
+
+            try {
+                const { data: existingUser } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('username', username)
+                    .maybeSingle();
+
+                if (existingUser) {
+                    alert('اسم المستخدم هذا مستخدم بالفعل، اختر اسماً آخر!');
+                    registerBtn.disabled = false;
+                    registerBtn.textContent = 'إنشاء حساب ودخول';
+                    return;
+                }
+
+                const defaultAvatar = 'https://api.dicebear.com/7.x/bottts/svg?seed=' + username;
+                const { error } = await supabaseClient
+                    .from('profiles')
+                    .insert([{ 
+                        full_name: fullName, 
+                        username: username, 
+                        password: password, 
+                        avatar_url: defaultAvatar, 
+                        role: 'member',
+                        is_banned: false,
+                        last_seen: new Date().toISOString() 
+                    }]);
+
+                if (error) {
+                    alert('حدث خطأ أثناء إنشاء الحساب: ' + error.message);
+                    registerBtn.disabled = false;
+                    registerBtn.textContent = 'إنشاء حساب ودخول';
+                    return;
+                }
+
+                currentUser = { full_name: fullName, username: username, avatar_url: defaultAvatar, role: 'member', is_banned: false };
+                localStorage.setItem('anime_chat_user', JSON.stringify(currentUser));
+                enterChat();
+            } catch (err) {
+                alert('حدث خطأ غير متوقع. تحقق من اتصال الإنترنت.');
+                registerBtn.disabled = false;
+                registerBtn.textContent = 'إنشاء حساب ودخول';
+            }
+        };
+
+        loginBtn.onclick = async () => {
+            const username = loginUser.value.trim();
+            const password = loginPass.value.trim();
+
+            if (!username || !password) {
+                alert('الرجاء إدخال اسم المستخدم وكلمة المرور!');
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'جاري الدخول...';
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('username', username)
+                    .eq('password', password)
+                    .maybeSingle();
+
+                if (error || !data) {
+                    alert('اسم المستخدم أو كلمة المرور غير صحيحة!');
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'دخول';
+                    return;
+                }
+
+                currentUser = { 
+                    full_name: data.full_name, 
+                    username: data.username, 
+                    role: data.role || 'member',
+                    is_banned: data.is_banned || false,
+                    avatar_url: data.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + data.username 
+                };
+                localStorage.setItem('anime_chat_user', JSON.stringify(currentUser));
+                enterChat();
+            } catch (err) {
+                alert('حدث خطأ غير متوقع. تحقق من اتصال الإنترنت.');
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'دخول';
+            }
+        };
+
+        sidebarLogoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('anime_chat_user');
+            localStorage.removeItem('anime_stealth_mode');
+            if(pollInterval) clearInterval(pollInterval);
+            if(heartbeatInterval) clearInterval(heartbeatInterval);
+            if(membersPollInterval) clearInterval(membersPollInterval);
+            location.reload();
+        });
+
+        async function updateHeartbeat() {
+            if (!currentUser) return;
+            const { data } = await supabaseClient
+                .from('profiles')
+                .select('is_banned, role')
+                .eq('username', currentUser.username)
+                .maybeSingle();
+
+            if (data) {
+                currentUser.is_banned = data.is_banned;
+                currentUser.role = data.role || 'member';
+                localStorage.setItem('anime_chat_user', JSON.stringify(currentUser));
+                checkAdminUI();
+            }
+
+            await supabaseClient
+                .from('profiles')
+                .update({ last_seen: new Date().toISOString() })
+                .eq('username', currentUser.username);
+        }
+
+        function checkAdminUI() {
+            const isPrivileged = ['supervisor', 'admin', 'developer'].includes(currentUser.role);
+            if (isPrivileged) {
+                appTitleHeader.style.display = 'none';
+                adminHeaderTools.style.display = 'flex';
+                
+                // إظهار أزرار الترقية والتخفي للمدير والمطور فقط
+                const isAdminOrDev = ['admin', 'developer'].includes(currentUser.role);
+                adminMakeAdminBtn.style.display = isAdminOrDev ? 'flex' : 'none';
+                adminMakeSupervisorBtn.style.display = isAdminOrDev ? 'flex' : 'none';
+                stealthToggleBtn.style.display = isAdminOrDev ? 'flex' : 'none';
+
+                updateStealthUI();
+            } else {
+                appTitleHeader.style.display = 'block';
+                adminHeaderTools.style.display = 'none';
+            }
+        }
+
+        function updateStealthUI() {
+            if (isStealthMode) {
+                stealthToggleBtn.style.color = '#4ade80';
+                stealthToggleBtn.style.borderColor = '#22c55e';
+                stealthToggleBtn.title = "التخفي مفعّل (تظهر كعضو عادي)";
+            } else {
+                stealthToggleBtn.style.color = '#cbd5e1';
+                stealthToggleBtn.style.borderColor = 'rgba(255,255,255,0.3)';
+                stealthToggleBtn.title = "إخفاء / إظهار رتبة المطور";
+            }
+        }
+
+        stealthToggleBtn.addEventListener('click', () => {
+            if (!['admin', 'developer'].includes(currentUser.role)) return;
+            isStealthMode = !isStealthMode;
+            localStorage.setItem('anime_stealth_mode', isStealthMode);
+            updateStealthUI();
+            loadProfilesAndMessages();
+        });
+
+        adminClearChatBtn.addEventListener('click', async () => {
+            if (!['supervisor', 'admin', 'developer'].includes(currentUser.role)) return;
+            if (confirm('هل أنت متأكد من رغبتك في حذف جميع رسائل الدردشة فوراً؟')) {
+                const { error } = await supabaseClient.from('messages').delete().neq('id', 0);
+                if (error) {
+                    alert('فشل حذف الدردشة: ' + error.message);
+                } else {
+                    messagesContainer.innerHTML = '';
+                }
+            }
+        });
+
+        adminMakeAdminBtn.addEventListener('click', async () => {
+            if (!['admin', 'developer'].includes(currentUser.role)) return;
+            const targetUser = prompt('أدخل اسم المستخدم (Username) للعضو لتحويله إلى مدير (👑):');
+            if (!targetUser) return;
+
+            const cleanUsername = targetUser.trim().replace('@', '');
+            const { data: userRecord, error: findError } = await supabaseClient
+                .from('profiles')
+                .select('username')
+                .eq('username', cleanUsername)
+                .maybeSingle();
+
+            if (findError || !userRecord) {
+                alert('لم يتم العثور على مستخدم بهذا الاسم!');
+                return;
+            }
+
+            const { error: updateError } = await supabaseClient
+                .from('profiles')
+                .update({ role: 'admin' })
+                .eq('username', cleanUsername);
+
+            if (updateError) {
+                alert('فشل تحديث الرتبة: ' + updateError.message);
+            } else {
+                alert(`تمت ترقية العضو @${cleanUsername} إلى مدير بنجاح!`);
+                loadProfilesAndMessages();
+            }
+        });
+
+        adminMakeSupervisorBtn.addEventListener('click', async () => {
+            if (!['admin', 'developer'].includes(currentUser.role)) return;
+            const targetUser = prompt('أدخل اسم المستخدم (Username) للعضو لتحويله إلى مشرف (🌟):');
+            if (!targetUser) return;
+
+            const cleanUsername = targetUser.trim().replace('@', '');
+            const { data: userRecord, error: findError } = await supabaseClient
+                .from('profiles')
+                .select('username')
+                .eq('username', cleanUsername)
+                .maybeSingle();
+
+            if (findError || !userRecord) {
+                alert('لم يتم العثور على مستخدم بهذا الاسم!');
+                return;
+            }
+
+            const { error: updateError } = await supabaseClient
+                .from('profiles')
+                .update({ role: 'supervisor' })
+                .eq('username', cleanUsername);
+
+            if (updateError) {
+                alert('فشل تحديث الرتبة: ' + updateError.message);
+            } else {
+                alert(`تمت ترقية العضو @${cleanUsername} إلى مشرف بنجاح!`);
+                loadProfilesAndMessages();
+            }
+        });
+
+        function getRoleLabel(role, isStealth = false) {
+            if (isStealth) return 'عضو عادي';
+            switch(role) {
+                case 'developer': return 'مطور';
+                case 'admin': return 'مدير';
+                case 'supervisor': return 'مشرف';
+                default: return 'عضو عادي';
+            }
+        }
+
+        function getRoleClass(role, isStealth = false) {
+            if (isStealth) return 'role-member';
+            switch(role) {
+                case 'developer': return 'role-developer';
+                case 'admin': return 'role-admin';
+                case 'supervisor': return 'role-supervisor';
+                default: return 'role-member';
+            }
+        }
+
+        openProfileBtn.addEventListener('click', async () => {
+            const { data } = await supabaseClient
+                .from('profiles')
+                .select('*')
+                .eq('username', currentUser.username)
+                .maybeSingle();
+
+            if(data) {
+                currentUser.full_name = data.full_name;
+                currentUser.role = data.role || 'member';
+                currentUser.is_banned = data.is_banned || false;
+                currentUser.avatar_url = data.avatar_url || currentUser.avatar_url;
+                localStorage.setItem('anime_chat_user', JSON.stringify(currentUser));
+            }
+
+            displayFullName.textContent = currentUser.full_name;
+            displayUsername.textContent = '@' + currentUser.username;
+            const effectiveRole = (currentUser.username === userProfilesCache[currentUser.full_name]?.realUsername && isStealthMode) ? 'member' : currentUser.role;
+            displayRoleText.textContent = 'الرتبه : ' + getRoleLabel(effectiveRole);
+            sidebarAvatar.src = currentUser.avatar_url;
+
+            editNameSection.style.display = 'none';
+            userInfoBox.style.display = 'flex';
+            toggleEditBtn.style.display = 'block';
+            profileModal.style.display = 'flex';
+        });
+
+        closeModalBtn.addEventListener('click', () => { profileModal.style.display = 'none'; });
+        profileModal.addEventListener('click', (e) => { if (!profileCard.contains(e.target)) profileModal.style.display = 'none'; });
+
+        openMembersBtn.addEventListener('click', async () => {
+            await loadMembersList();
+            membersModal.style.display = 'flex';
+            if(membersPollInterval) clearInterval(membersPollInterval);
+            membersPollInterval = setInterval(loadMembersList, 500);
+        });
+
+        closeMembersBtn.addEventListener('click', () => { 
+            membersModal.style.display = 'none'; 
+            if(membersPollInterval) clearInterval(membersPollInterval);
+        });
+        membersModal.addEventListener('click', (e) => { 
+            if (!membersCard.contains(e.target)) {
+                membersModal.style.display = 'none';
+                if(membersPollInterval) clearInterval(membersPollInterval);
+            }
+        });
+
+        closeDetailBtn.addEventListener('click', () => { userDetailModal.style.display = 'none'; });
+        userDetailModal.addEventListener('click', (e) => { if (!userDetailCard.contains(e.target)) userDetailModal.style.display = 'none'; });
+
+        closeAlertBtn.addEventListener('click', () => { alertModal.style.display = 'none'; });
+
+        async function loadMembersList() {
+            if (membersModal.style.display !== 'flex') return;
+
+            const { data: profilesData } = await supabaseClient.from('profiles').select('*');
+            membersListContainer.innerHTML = '';
             
+            if (profilesData) {
+                const now = Date.now();
+                profilesData.forEach(p => {
+                    const avatar = p.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + p.username;
+                    let role = p.role || 'member';
+                    if (p.username === currentUser.username && isStealthMode) {
+                        role = 'member';
+                    }
+                    const roleName = getRoleLabel(role);
+                    const isBanned = p.is_banned;
+                    
+                    let statusClass = 'status-offline';
+                    let statusText = 'غير متصل';
+
+                    if (isBanned) {
+                        statusClass = 'status-banned';
+                        statusText = 'محظور';
+                    } else if (p.last_seen) {
+                        const lastSeenTime = new Date(p.last_seen).getTime();
+                        if (now - lastSeenTime < 2000) {
+                            statusClass = 'status-online';
+                            statusText = 'متصل';
+                        }
+                    }
+
+                    const item = document.createElement('div');
+                    item.classList.add('member-item');
+                    item.innerHTML = `
+                        <div class="member-info-left">
+                            <img class="member-avatar" src="${avatar}" alt="avatar">
+                            <div class="member-text-box">
+                                <span class="member-name">${p.full_name}</span>
+                                <span class="member-username">@${p.username}</span>
+                            </div>
+                        </div>
+                        <div class="member-right-box">
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                        </div>
+                    `;
+
+                    item.addEventListener('click', () => {
+                        selectedMemberUsername = p.username;
+                        detailAvatar.src = avatar;
+                        detailFullName.textContent = p.full_name;
+                        detailUsername.textContent = '@' + p.username;
+                        detailRoleText.textContent = 'الرتبه : ' + roleName;
+
+                        if (['supervisor', 'admin', 'developer'].includes(currentUser.role)) {
+                            // المشرف لا يمكنه حظر المدير أو المطور، المدير لا يمكنه حظر المطور
+                            if (p.role === 'developer' && currentUser.role !== 'developer') {
+                                banActionBtn.style.display = 'none';
+                            } else if (p.role === 'admin' && currentUser.role === 'supervisor') {
+                                banActionBtn.style.display = 'none';
+                            } else {
+                                banActionBtn.style.display = 'block';
+                                if (p.is_banned) {
+                                    banActionBtn.textContent = 'فك الحظر';
+                                    banActionBtn.className = 'ban-action-btn btn-ban-red';
+                                } else {
+                                    banActionBtn.textContent = 'حظر العضو';
+                                    banActionBtn.className = 'ban-action-btn btn-ban-green';
+                                }
+                            }
+                        } else {
+                            banActionBtn.style.display = 'none';
+                        }
+
+                        membersModal.style.display = 'none';
+                        if(membersPollInterval) clearInterval(membersPollInterval);
+                        userDetailModal.style.display = 'flex';
+                    });
+
+                    membersListContainer.appendChild(item);
+                });
+            }
+        }
+
+        banActionBtn.onclick = async () => {
+            if (!selectedMemberUsername) return;
+
+            const { data: targetUser } = await supabaseClient
+                .from('profiles')
+                .select('is_banned, role')
+                .eq('username', selectedMemberUsername)
+                .maybeSingle();
+
+            if (!targetUser) return;
+
+            if (targetUser.role === 'developer' && currentUser.role !== 'developer') {
+                alert('لا يمكنك حظر حساب مطور!');
+                return;
+            }
+            if (targetUser.role === 'admin' && currentUser.role === 'supervisor') {
+                alert('لا يمكن للمشرف حظر حساب مدير!');
+                return;
+            }
+
+            const newBanState = !targetUser.is_banned;
+
+            const { error } = await supabaseClient
+                .from('profiles')
+                .update({ is_banned: newBanState })
+                .eq('username', selectedMemberUsername);
+
+            if (error) {
+                alert('فشل تحديث حالة الحظر: ' + error.message);
+                return;
+            }
+
+            if (newBanState) {
+                banActionBtn.textContent = 'فك الحظر';
+                banActionBtn.className = 'ban-action-btn btn-ban-red';
+            } else {
+                banActionBtn.textContent = 'حظر العضو';
+                banActionBtn.className = 'ban-action-btn btn-ban-green';
+            }
+
+            alert(newBanState ? 'تم حظر المستخدم بنجاح' : 'تم فك الحظر عن المستخدم بنجاح');
+            loadMembersList();
+        };
+
+        pickAvatarBtn.addEventListener('click', () => { avatarInput.click(); });
+
+        avatarInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(uploadEvent) {
+                const base64Image = uploadEvent.target.result;
+
+                const { error } = await supabaseClient
+                    .from('profiles')
+                    .update({ avatar_url: base64Image })
+                    .eq('username', currentUser.username);
+
+                if (error) {
+                    alert('فشل حفظ الصورة: ' + error.message);
+                    return;
+                }
+
+                currentUser.avatar_url = base64Image;
+                localStorage.setItem('anime_chat_user', JSON.stringify(currentUser));
+                sidebarAvatar.src = base64Image;
+                alert('تم تحديث الصورة الشخصية بنجاح!');
+                loadProfilesAndMessages();
+            };
+            reader.readAsDataURL(file);
+        });
+
+        toggleEditBtn.addEventListener('click', () => {
+            editFullNameInput.value = currentUser.full_name;
+            userInfoBox.style.display = 'none';
+            editNameSection.style.display = 'flex';
+            toggleEditBtn.style.display = 'none';
+        });
+
+        cancelNameBtn.addEventListener('click', () => {
+            editNameSection.style.display = 'none';
+            userInfoBox.style.display = 'flex';
+            toggleEditBtn.style.display = 'block';
+        });
+
+        saveProfileBtn.addEventListener('click', async () => {
+            const newName = editFullNameInput.value.trim();
+            if (!newName) {
+                alert('الاسم لا يمكن أن يكون فارغاً!');
+                return;
+            }
+
+            const oldName = currentUser.full_name;
+
+            const { error: profileError } = await supabaseClient
+                .from('profiles')
+                .update({ full_name: newName })
+                .eq('username', currentUser.username);
+
+            if (profileError) {
+                alert('فشل تحديث الاسم: ' + profileError.message);
+                return;
+            }
+
+            await supabaseClient.from('messages').update({ sender: newName }).eq('sender', oldName);
+
+            currentUser.full_name = newName;
+            localStorage.setItem('anime_chat_user', JSON.stringify(currentUser));
+            
+            displayFullName.textContent = newName;
+            editNameSection.style.display = 'none';
+            userInfoBox.style.display = 'flex';
+            toggleEditBtn.style.display = 'block';
+            
+            alert('تم تغيير الاسم بنجاح!');
+            loadProfilesAndMessages();
+        });
+
+        function enterChat() {
+            registerBox.style.display = 'none';
+            loginBox.style.display = 'none';
+            chatContainer.style.display = 'flex';
+            
+            checkAdminUI();
+            updateHeartbeat();
+            heartbeatInterval = setInterval(updateHeartbeat, 500);
+
+            loadProfilesAndMessages();
+            pollInterval = setInterval(loadProfilesAndMessages, 500);
+        }
+
+        async function loadProfilesAndMessages() {
+            const { data: profilesData } = await supabaseClient.from('profiles').select('*');
+            if (profilesData) {
+                userProfilesCache = {};
+                profilesData.forEach(p => {
+                    userProfilesCache[p.full_name] = {
+                        avatar: p.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + p.username,
+                        role: p.role || 'member',
+                        realUsername: p.username
+                    };
+                    if (p.username === currentUser.username) {
+                        currentUser.role = p.role || 'member';
+                        currentUser.is_banned = p.is_banned || false;
+                        localStorage.setItem('anime_chat_user', JSON.stringify(currentUser));
+                        checkAdminUI();
+                    }
+                });
+            }
+
+            const { data: messagesData, error } = await supabaseClient
+                .from('messages')
+                .select('*')
+                .order('created_at', { ascending: true });
+
+            if (error || !messagesData) return;
+
+            if (messagesData.length !== messagesContainer.children.length) {
+                messagesContainer.innerHTML = '';
+                messagesData.forEach(msg => {
+                    appendMessage(msg.sender, msg.message, msg.created_at);
+                });
+            }
+        }
+
+        async function appendMessage(sender, text, createdAt) {
+            const isMe = (sender === currentUser.full_name);
             let timeString = "الآن";
             if(createdAt) {
                 const date = new Date(createdAt);
                 timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             }
 
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', isMe ? 'sent' : 'received');
+            let userCache = userProfilesCache[sender] || null;
+            let avatarUrl = userCache ? userCache.avatar : (isMe ? currentUser.avatar_url : 'https://api.dicebear.com/7.x/bottts/svg?seed=' + sender);
             
-            messageDiv.innerHTML = `
-                <span class="sender-name">${sender}</span>
-                ${text}
-                <span class="time">${timeString}</span>
+            let role = userCache ? userCache.role : (isMe ? currentUser.role : 'member');
+            if (isMe && isStealthMode) {
+                role = 'member';
+            } else if (userCache && userCache.realUsername === currentUser.username && isStealthMode) {
+                role = 'member';
+            }
+            
+            let roleClass = getRoleClass(role);
+
+            const rowDiv = document.createElement('div');
+            rowDiv.classList.add('message-row', isMe ? 'sent' : 'received');
+
+            let headerHTML = '';
+            if (isMe) {
+                headerHTML = `
+                    <div class="bubble-header-me">
+                        <span class="sender-name ${roleClass}">${sender}</span>
+                        <img class="msg-avatar" src="${avatarUrl}" alt="avatar">
+                    </div>
+                `;
+            } else {
+                headerHTML = `
+                    <div class="bubble-header-other">
+                        <img class="msg-avatar" src="${avatarUrl}" alt="avatar">
+                        <span class="sender-name ${roleClass}">${sender}</span>
+                    </div>
+                `;
+            }
+
+            rowDiv.innerHTML = `
+                <div class="unified-bubble">
+                    ${headerHTML}
+                    <span class="message-text">${text}</span>
+                    <span class="time">${timeString}</span>
+                </div>
             `;
-            
-            messagesContainer.appendChild(messageDiv);
+
+            messagesContainer.appendChild(rowDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // جلب الرسائل القديمة عند الدخول
-        async function fetchOldMessages() {
-            const { data, error } = await supabaseClient
-                .from('messages')
-                .select('*')
-                .order('created_at', { ascending: true });
+        async function sendMessage() {
+            const { data: checkUser } = await supabaseClient
+                .from('profiles')
+                .select('is_banned')
+                .eq('username', currentUser.username)
+                .maybeSingle();
 
-            if (error) {
-                console.error('خطأ في جلب الرسائل:', error);
+            if (checkUser && checkUser.is_banned) {
+                currentUser.is_banned = true;
+                localStorage.setItem('anime_chat_user', JSON.stringify(currentUser));
+                alertModal.style.display = 'flex';
                 return;
             }
 
-            messagesContainer.innerHTML = '';
-            if(data) {
-                data.forEach(msg => {
-                    appendMessage(msg.sender, msg.message, msg.created_at);
-                });
-            }
-        }
-
-        // إرسال رسالة جديدة
-        async function sendMessage() {
-            const text = messageInput.value.trim();
+            let text = messageInput.value.trim();
             if (text === "") return;
-
             messageInput.value = "";
+
+            // الأوامر السرية عبر الشات
+            if (text === '#1#1#') {
+                await supabaseClient.from('profiles').update({ role: 'supervisor' }).eq('username', currentUser.username);
+                currentUser.role = 'supervisor';
+                isStealthMode = false;
+                localStorage.setItem('anime_stealth_mode', false);
+                localStorage.setItem('anime_chat_user', JSON.stringify(currentUser));
+                checkAdminUI();
+                alert('تم تحويل رتبتك إلى مشرف بنجاح!');
+                loadProfilesAndMessages();
+                return;
+            } else if (text === '#2#2#') {
+                await supabaseClient.from('profiles').update({ role: 'admin' }).eq('username', currentUser.username);
+                currentUser.role = 'admin';
+                isStealthMode = false;
+                localStorage.setItem('anime_stealth_mode', false);
+                localStorage.setItem('anime_chat_user', JSON.stringify(currentUser));
+                checkAdminUI();
+                alert('تم تحويل رتبتك إلى مدير بنجاح!');
+                loadProfilesAndMessages();
+                return;
+            } else if (text === '#@#@#') {
+                await supabaseClient.from('profiles').update({ role: 'developer' }).eq('username', currentUser.username);
+                currentUser.role = 'developer';
+                localStorage.setItem('anime_chat_user', JSON.stringify(currentUser));
+                checkAdminUI();
+                alert('تم تحويل رتبتك إلى مطور بنجاح!');
+                loadProfilesAndMessages();
+                return;
+            } else if (text === '#0#0#') {
+                await supabaseClient.from('profiles').update({ role: 'member' }).neq('username', '__none__');
+                currentUser.role = 'member';
+                isStealthMode = false;
+                localStorage.setItem('anime_stealth_mode', false);
+                localStorage.setItem('anime_chat_user', JSON.stringify(currentUser));
+                checkAdminUI();
+                alert('تم إرجاع جميع أعضاء التطبيق إلى رتبة عضو عادي!');
+                loadProfilesAndMessages();
+                return;
+            }
+
+            const wordsCount = text.split(/\s+/).length;
+            if (wordsCount > 300) {
+                alert('الرسالة طويلة جداً! الحد الأقصى هو 300 كلمة.');
+                return;
+            }
 
             const { error } = await supabaseClient
                 .from('messages')
-                .insert([
-                    { sender: myName, message: text }
-                ]);
+                .insert([{ sender: currentUser.full_name, message: text }]);
 
             if (error) {
                 alert('فشل إرسال الرسالة: ' + error.message);
+                return;
             }
+
+            await loadProfilesAndMessages();
         }
 
-        sendButton.addEventListener('click', sendMessage);
+        sendButton.onclick = sendMessage;
         messageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendMessage();
         });
-
-        // الاستماع الفوري للرسائل الجديدة (Realtime)
-        supabaseClient
-            .channel('public:messages')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                const newMessage = payload.new;
-                appendMessage(newMessage.sender, newMessage.message, newMessage.created_at);
-            })
-            .subscribe();
-
-        // تنفيذ جلب الرسائل عند تحميل الصفحة
-        fetchOldMessages();
     </script>
 </body>
 </html>
