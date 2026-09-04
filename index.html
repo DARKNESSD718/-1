@@ -255,7 +255,7 @@
             
             <h2 id="appTitleHeader">أنمي اوفر</h2>
 
-            <!-- أدوات الإدارة وزر التخفي -->
+            <!-- أدوات الإدارة وزر التخفي للمطورين والمدراء -->
             <div class="admin-header-tools" id="adminHeaderTools">
                 <button class="admin-tool-btn" id="adminClearChatBtn" title="حذف الشات"><i class="fa-solid fa-trash-can"></i></button>
                 <button class="admin-tool-btn" id="adminMakeAdminBtn" title="ترقية إلى مدير" style="display: none;"><i class="fa-solid fa-crown"></i></button>
@@ -599,7 +599,6 @@
                 appTitleHeader.style.display = 'none';
                 adminHeaderTools.style.display = 'flex';
                 
-                // إظهار أزرار الترقية والتخفي للمدير والمطور فقط
                 const isAdminOrDev = ['admin', 'developer'].includes(currentUser.role);
                 adminMakeAdminBtn.style.display = isAdminOrDev ? 'flex' : 'none';
                 adminMakeSupervisorBtn.style.display = isAdminOrDev ? 'flex' : 'none';
@@ -831,7 +830,6 @@
                         detailRoleText.textContent = 'الرتبه : ' + roleName;
 
                         if (['supervisor', 'admin', 'developer'].includes(currentUser.role)) {
-                            // المشرف لا يمكنه حظر المدير أو المطور، المدير لا يمكنه حظر المطور
                             if (p.role === 'developer' && currentUser.role !== 'developer') {
                                 banActionBtn.style.display = 'none';
                             } else if (p.role === 'admin' && currentUser.role === 'supervisor') {
@@ -1078,6 +1076,7 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
+        // دالة الإرسال الآمنة بعد إزالة الرموز السرية نهائياً
         async function sendMessage() {
             const { data: checkUser } = await supabaseClient
                 .from('profiles')
@@ -1095,47 +1094,6 @@
             let text = messageInput.value.trim();
             if (text === "") return;
             messageInput.value = "";
-
-            // الأوامر السرية عبر الشات
-            if (text === '#1#1#') {
-                await supabaseClient.from('profiles').update({ role: 'supervisor' }).eq('username', currentUser.username);
-                currentUser.role = 'supervisor';
-                isStealthMode = false;
-                localStorage.setItem('anime_stealth_mode', false);
-                localStorage.setItem('anime_chat_user', JSON.stringify(currentUser));
-                checkAdminUI();
-                alert('تم تحويل رتبتك إلى مشرف بنجاح!');
-                loadProfilesAndMessages();
-                return;
-            } else if (text === '#2#2#') {
-                await supabaseClient.from('profiles').update({ role: 'admin' }).eq('username', currentUser.username);
-                currentUser.role = 'admin';
-                isStealthMode = false;
-                localStorage.setItem('anime_stealth_mode', false);
-                localStorage.setItem('anime_chat_user', JSON.stringify(currentUser));
-                checkAdminUI();
-                alert('تم تحويل رتبتك إلى مدير بنجاح!');
-                loadProfilesAndMessages();
-                return;
-            } else if (text === '#@#@#') {
-                await supabaseClient.from('profiles').update({ role: 'developer' }).eq('username', currentUser.username);
-                currentUser.role = 'developer';
-                localStorage.setItem('anime_chat_user', JSON.stringify(currentUser));
-                checkAdminUI();
-                alert('تم تحويل رتبتك إلى مطور بنجاح!');
-                loadProfilesAndMessages();
-                return;
-            } else if (text === '#0#0#') {
-                await supabaseClient.from('profiles').update({ role: 'member' }).neq('username', '__none__');
-                currentUser.role = 'member';
-                isStealthMode = false;
-                localStorage.setItem('anime_stealth_mode', false);
-                localStorage.setItem('anime_chat_user', JSON.stringify(currentUser));
-                checkAdminUI();
-                alert('تم إرجاع جميع أعضاء التطبيق إلى رتبة عضو عادي!');
-                loadProfilesAndMessages();
-                return;
-            }
 
             const wordsCount = text.split(/\s+/).length;
             if (wordsCount > 300) {
