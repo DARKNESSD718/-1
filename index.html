@@ -274,7 +274,6 @@
             <button id="sendButton"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
 
-        <!-- قائمة الحساب الشخصي -->
         <div class="profile-modal" id="profileModal">
             <div class="profile-card" id="profileCard">
                 <h3>الحساب</h3>
@@ -336,7 +335,6 @@
             </div>
         </div>
 
-        <!-- قائمة تفاصيل العضو الآخر -->
         <div class="user-detail-modal" id="userDetailModal">
             <div class="user-detail-card" id="userDetailCard">
                 <img id="detailAvatar" class="detail-avatar" src="" alt="صورة العضو">
@@ -579,6 +577,7 @@
             localStorage.removeItem('anime_stealth_mode');
             localStorage.removeItem('anime_local_messages');
             localStorage.removeItem('anime_profiles_cache');
+            localStorage.removeItem('anime_all_members_list');
             location.reload();
         });
 
@@ -740,9 +739,11 @@
         closeModalBtn.addEventListener('click', () => { profileModal.style.display = 'none'; });
         profileModal.addEventListener('click', (e) => { if (!profileCard.contains(e.target)) profileModal.style.display = 'none'; });
 
+        // فتح القائمة فورا من الذاكرة المحلية دون انتظار السيرفر
         openMembersBtn.addEventListener('click', () => {
             membersModal.style.display = 'flex';
-            loadMembersList();
+            renderMembersFromCache(); 
+            loadMembersListInBackground();
         });
 
         closeMembersBtn.addEventListener('click', () => { membersModal.style.display = 'none'; });
@@ -753,82 +754,113 @@
 
         closeAlertBtn.addEventListener('click', () => { alertModal.style.display = 'none'; });
 
-        async function loadMembersList() {
-            const { data: profilesData } = await supabaseClient.from('custom_users').select('*');
-            membersListContainer.innerHTML = '';
+        function renderMembersFromCache() {
+            let cachedProfiles = JSON.parse(localStorage.getItem('anime_all_members_list')) || [];
             
-            if (profilesData) {
-                const now = Date.now();
-                profilesData.forEach(p => {
-                    const avatar = p.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + p.username;
-                    let role = p.role || 'member';
-                    if (p.username === currentUser.username && isStealthMode) role = 'member';
-                    
-                    const roleName = getRoleLabel(role);
-                    const isBanned = p.is_banned;
-                    
-                    let statusClass = 'status-offline';
-                    let statusText = 'غير متصل';
+            // إذا كانت الذاكرة فارغة تماماً، نعرض المستخدم الحالي مؤقتاً لتجنب شاشة التحميل المعلقة
+            if (cachedProfiles.length === 0 && currentUser) {
+                cachedProfiles = [{
+                    full_name: currentUser.full_name,
+                    username: currentUser.username,
+                    avatar_url: currentUser.avatar_url,
+                    role: currentUser.role,
+                    is_banned: currentUser.is_banned,
+                    last_seen: new Date().toISOString()
+                }];
+            }
+            
+            buildMembersHTML(cachedProfiles);
+        }
 
-                    if (isBanned) {
-                        statusClass = 'status-banned';
-                        statusText = 'محظور';
-                    } else if (p.last_seen) {
-                        const lastSeenTime = new Date(p.last_seen).getTime();
-                        if (now - lastSeenTime < 15000) {
-                            statusClass = 'status-online';
-                            statusText = 'متصل';
+        async function loadMembersListInBackground() {
+            try {
+                const { data: profilesData, error } = await supabaseClient.from('custom_users').select('*');
+                if (error) {
+                    console.error('خطأ في جلب الأعضاء:', error.message);
+                    return;
+                }
+                if (profilesData && profilesData.length > 0) {
+                    localStorage.setItem('anime_all_members_list', JSON.stringify(profilesData));
+                    buildMembersHTML(profilesData);
+                }
+            } catch (err) {
+                console.error('فشل الاتصال:', err);
+            }
+        }
+
+        function buildMembersHTML(profilesData) {
+            membersListContainer.innerHTML = '';
+            const now = Date.now();
+            
+            profilesData.forEach(p => {
+                const avatar = p.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + p.username;
+                let role = p.role || 'member';
+                if (p.username === currentUser.username && isStealthMode) role = 'member';
+                
+                const roleName = getRoleLabel(role);
+                const isBanned = p.is_banned;
+                
+                let statusClass = 'status-offline';
+                let statusText = 'غير متصل';
+
+                if (isBanned) {
+                    statusClass = 'status-banned';
+                    statusText = 'محظور';
+                } else if (p.last_seen) {
+                    const lastSeenTime = new Date(p.last_seen).getTime();
+                    if (now - lastSeenTime < 15000) {
+                        statusClass = 'status-online';
+                        statusText = 'متصل';
+                    }
+                }
+
+                const item = document.createElement('div');
+                item.classList.add('member-item');
+                item.innerHTML = `
+                    <div class="member-info-left">
+                        <img class="member-avatar" src="${avatar}" alt="avatar">
+                        <div class="member-text-box">
+                            <span class="member-name">${p.full_name}</span>
+                            <span class="member-username">@${p.username}</span>
+                        </div>
+                    </div>
+                    <div class="member-right-box">
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </div>
+                `;
+
+                item.addEventListener('click', () => {
+                    selectedMemberUsername = p.username;
+                    detailAvatar.src = avatar;
+                    detailFullName.textContent = p.full_name;
+                    detailUsername.textContent = '@' + p.username;
+                    detailRoleText.textContent = 'الرتبه : ' + roleName;
+
+                    if (['supervisor', 'admin', 'developer'].includes(currentUser.role)) {
+                        if (p.role === 'developer' && currentUser.role !== 'developer') {
+                            banActionBtn.style.display = 'none';
+                        } else if (p.role === 'admin' && currentUser.role === 'supervisor') {
+                            banActionBtn.style.display = 'none';
+                        } else {
+                            banActionBtn.style.display = 'block';
+                            if (p.is_banned) {
+                                banActionBtn.textContent = 'فك الحظر';
+                                banActionBtn.className = 'action-control-btn btn-ban-red';
+                            } else {
+                                banActionBtn.textContent = 'حظر العضو';
+                                banActionBtn.className = 'action-control-btn btn-ban-green';
+                            }
                         }
+                    } else {
+                        banActionBtn.style.display = 'none';
                     }
 
-                    const item = document.createElement('div');
-                    item.classList.add('member-item');
-                    item.innerHTML = `
-                        <div class="member-info-left">
-                            <img class="member-avatar" src="${avatar}" alt="avatar">
-                            <div class="member-text-box">
-                                <span class="member-name">${p.full_name}</span>
-                                <span class="member-username">@${p.username}</span>
-                            </div>
-                        </div>
-                        <div class="member-right-box">
-                            <span class="status-badge ${statusClass}">${statusText}</span>
-                        </div>
-                    `;
-
-                    item.addEventListener('click', () => {
-                        selectedMemberUsername = p.username;
-                        detailAvatar.src = avatar;
-                        detailFullName.textContent = p.full_name;
-                        detailUsername.textContent = '@' + p.username;
-                        detailRoleText.textContent = 'الرتبه : ' + roleName;
-
-                        if (['supervisor', 'admin', 'developer'].includes(currentUser.role)) {
-                            if (p.role === 'developer' && currentUser.role !== 'developer') {
-                                banActionBtn.style.display = 'none';
-                            } else if (p.role === 'admin' && currentUser.role === 'supervisor') {
-                                banActionBtn.style.display = 'none';
-                            } else {
-                                banActionBtn.style.display = 'block';
-                                if (p.is_banned) {
-                                    banActionBtn.textContent = 'فك الحظر';
-                                    banActionBtn.className = 'action-control-btn btn-ban-red';
-                                } else {
-                                    banActionBtn.textContent = 'حظر العضو';
-                                    banActionBtn.className = 'action-control-btn btn-ban-green';
-                                }
-                            }
-                        } else {
-                            banActionBtn.style.display = 'none';
-                        }
-
-                        membersModal.style.display = 'none';
-                        userDetailModal.style.display = 'flex';
-                    });
-
-                    membersListContainer.appendChild(item);
+                    membersModal.style.display = 'none';
+                    userDetailModal.style.display = 'flex';
                 });
-            }
+
+                membersListContainer.appendChild(item);
+            });
         }
 
         banActionBtn.onclick = async () => {
@@ -855,6 +887,7 @@
 
             alert(newBanState ? 'تم حظر المستخدم بنجاح' : 'تم فك الحظر عن المستخدم بنجاح');
             userDetailModal.style.display = 'none';
+            loadMembersListInBackground();
         };
 
         pickAvatarBtn.addEventListener('click', () => { avatarInput.click(); });
@@ -923,9 +956,7 @@
             if(presenceInterval) clearInterval(presenceInterval);
             presenceInterval = setInterval(updatePresence, 10000);
 
-            // عرض الرسائل المخزنة محلياً فوراً لمنع أي تأخير (أقل من ثانية)
             renderCachedMessages();
-
             loadInitialData();
             setupRealtimeSubscriptions();
         }
@@ -942,7 +973,6 @@
         }
 
         async function loadInitialData() {
-            // جلب البروفايلات أولاً للتخزين المؤقت السريع
             supabaseClient.from('custom_users').select('*').then(({ data: profilesData }) => {
                 if (profilesData) {
                     userProfilesCache = {};
@@ -960,10 +990,10 @@
                         }
                     });
                     localStorage.setItem('anime_profiles_cache', JSON.stringify(userProfilesCache));
+                    localStorage.setItem('anime_all_members_list', JSON.stringify(profilesData));
                 }
             });
 
-            // جلب الرسائل الحديثة بأقصى سرعة
             supabaseClient
                 .from('messages')
                 .select('*')
@@ -989,7 +1019,6 @@
                     const newMsg = payload.new;
                     appendMessage(newMsg.sender, newMsg.message, newMsg.created_at, true);
                     
-                    // تحديث الكاش المحلي الفوري للرسائل
                     let localMsgs = JSON.parse(localStorage.getItem('anime_local_messages')) || [];
                     localMsgs.push(newMsg);
                     if(localMsgs.length > 35) localMsgs.shift();
@@ -998,6 +1027,13 @@
                 .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, () => {
                     messagesContainer.innerHTML = '';
                     localStorage.removeItem('anime_local_messages');
+                })
+                .subscribe();
+
+            supabaseClient
+                .channel('public-users-changes')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'custom_users' }, () => {
+                    loadMembersListInBackground();
                 })
                 .subscribe();
         }
@@ -1052,7 +1088,6 @@
             if (text === "") return;
             messageInput.value = "";
 
-            // إرسال مباشر وفوري للرسالة
             supabaseClient
                 .from('messages')
                 .insert([{ sender: currentUser.full_name, message: text }])
